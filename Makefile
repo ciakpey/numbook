@@ -42,10 +42,10 @@ EQUALS = =
 CMAKE_EDIT_COMMAND = /usr/bin/ccmake
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/man/opencv
+CMAKE_SOURCE_DIR = /home/man/opencv/numbook
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/man/opencv
+CMAKE_BINARY_DIR = /home/man/opencv/numbook
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -72,9 +72,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/man/opencv/CMakeFiles /home/man/opencv/CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/man/opencv/numbook/CMakeFiles /home/man/opencv/numbook/CMakeFiles/progress.marks
 	$(MAKE) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/man/opencv/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/man/opencv/numbook/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -102,41 +102,41 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named hello
+# Target rules for targets named numbook
 
 # Build rule for target.
-hello: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 hello
-.PHONY : hello
+numbook: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 numbook
+.PHONY : numbook
 
 # fast build rule for target.
-hello/fast:
-	$(MAKE) -f CMakeFiles/hello.dir/build.make CMakeFiles/hello.dir/build
-.PHONY : hello/fast
+numbook/fast:
+	$(MAKE) -f CMakeFiles/numbook.dir/build.make CMakeFiles/numbook.dir/build
+.PHONY : numbook/fast
 
-hello.o: hello.c.o
-.PHONY : hello.o
+main.o: main.c.o
+.PHONY : main.o
 
 # target to build an object file
-hello.c.o:
-	$(MAKE) -f CMakeFiles/hello.dir/build.make CMakeFiles/hello.dir/hello.c.o
-.PHONY : hello.c.o
+main.c.o:
+	$(MAKE) -f CMakeFiles/numbook.dir/build.make CMakeFiles/numbook.dir/main.c.o
+.PHONY : main.c.o
 
-hello.i: hello.c.i
-.PHONY : hello.i
+main.i: main.c.i
+.PHONY : main.i
 
 # target to preprocess a source file
-hello.c.i:
-	$(MAKE) -f CMakeFiles/hello.dir/build.make CMakeFiles/hello.dir/hello.c.i
-.PHONY : hello.c.i
+main.c.i:
+	$(MAKE) -f CMakeFiles/numbook.dir/build.make CMakeFiles/numbook.dir/main.c.i
+.PHONY : main.c.i
 
-hello.s: hello.c.s
-.PHONY : hello.s
+main.s: main.c.s
+.PHONY : main.s
 
 # target to generate assembly for a file
-hello.c.s:
-	$(MAKE) -f CMakeFiles/hello.dir/build.make CMakeFiles/hello.dir/hello.c.s
-.PHONY : hello.c.s
+main.c.s:
+	$(MAKE) -f CMakeFiles/numbook.dir/build.make CMakeFiles/numbook.dir/main.c.s
+.PHONY : main.c.s
 
 # Help Target
 help:
@@ -145,11 +145,11 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... edit_cache"
-	@echo "... hello"
+	@echo "... numbook"
 	@echo "... rebuild_cache"
-	@echo "... hello.o"
-	@echo "... hello.i"
-	@echo "... hello.s"
+	@echo "... main.o"
+	@echo "... main.i"
+	@echo "... main.s"
 .PHONY : help
 
 
