@@ -29,7 +29,6 @@ void bordures(IplImage * image, int *bordurehaut,int *bordurebas, CvScalar coule
 		while(cmpcolor((uchar *)ligne+b*image->widthStep,couleur.val[0],couleur.val[1],couleur.val[2],tolerance) && b>0	){
 			b--;
 		}
-		printf("%d|",h);
 		*(bordurebas+x)=b;
 		*(bordurehaut+x)=h;
 	}
@@ -55,6 +54,7 @@ void dewarp(IplImage * src,IplImage * dst,int *bordurehaut, int *bordurebas,int 
 		supp=bordurebas[sup];
 		inff=bordurehaut[inf];
 
+
 	/*for(x=0;x<src->height;x++){
 		for(y=0;y<src->width;y++){
 			*(matx->imageData+y*src->widthStep+x)=x;
@@ -70,7 +70,7 @@ void dewarp(IplImage * src,IplImage * dst,int *bordurehaut, int *bordurebas,int 
 					*(Mat(dst,y,x)+i)=*(i+Mat(src,(int) pos -(pos-bordurehaut[x])*(pos-y)/(pos-inff),x));
 				}
 				else{
-					*(Mat(dst,y,x)+i)=*(i+Mat(src,(int) pos -(y-pos)*(bordurebas[x]-pos)/(pos-supp) ,x));
+					*(Mat(dst,y,x)+i)=*(i+Mat(src,(int) pos +(pos-y)*(bordurebas[x]-pos)/(pos-supp) ,x));
 				}
 			}
 		}
@@ -122,21 +122,8 @@ int main (int argc, char* argv[])
 	pixel.val[1]=0;
 	pixel.val[2]=0;
 	bordures(img,tabx,taby,pixel,100);
-	dewarp(img,dst,tabx,taby,500);
+	dewarp(img,dst,tabx,taby,400);
 	
-	/*uchar * p;
-	int i=0;
-	p= (uchar *)img->imageData;
-	while(p-(uchar *)img->imageData<img->imageSize-1){
-		if (i > img->width-1 ) {
-			i=0;
-			printf("\n");
-		}
-		i++;
-		printf("%d|", *p);
-		p+=4;
-	}     
-	printf("\n");*/
   /* Libération de la mémoire */
   cvReleaseImage (&img);
   cvReleaseImage(&dst);
