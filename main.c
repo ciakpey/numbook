@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <opencv/highgui.h>
 #include <opencv/cv.h>
+#define Mat(img,i,j) (img->imageData +(i)*img->widthStep +(j)* img->nChannels)
 
 
 int cmpcolor(uchar* pixel,uchar ref1,uchar ref2,uchar ref3,float tolerance){
@@ -28,40 +29,57 @@ void bordures(IplImage * image, int *bordurehaut,int *bordurebas, CvScalar coule
 		while(cmpcolor((uchar *)ligne+b*image->widthStep,couleur.val[0],couleur.val[1],couleur.val[2],tolerance) && b>0	){
 			b--;
 		}
+		printf("%d|",h);
 		*(bordurebas+x)=b;
 		*(bordurehaut+x)=h;
 	}
 }
-void dewarp(IplImage * src,IplImage * dst,int *bordurehaut, int *bordurebas){
+void dewarp(IplImage * src,IplImage * dst,int *bordurehaut, int *bordurebas,int pos){
 	
 	IplImage *matx,*maty;
-	matx=cvCreateImage(cvSize(src->height,src->width),IPL_DEPTH_8U,1);
-	maty=cvCreateImage(cvSize(src->height,src->width),IPL_DEPTH_8U,1);
+	matx=cvCreateImage(cvSize(src->height,src->width),IPL_DEPTH_32F,1);
+	maty=cvCreateImage(cvSize(src->height,src->width),IPL_DEPTH_32F,1);
+	dst->origin = src->origin;
 	int inf=0;
 	int sup=src->width;
 		int x,y;
-	for(x=0;x<src->height;x++){
+	for(x=0;x<src->width;x++){
 			if (bordurehaut[x]<bordurehaut[inf]){
 				inf=x;
 			}
-			if(bordurebas[x]>bordurebas[inf]){
+			if(bordurebas[x]>bordurebas[sup]){
 				sup=x;
 			}
 		}
-	
+		int supp,inff;
+		supp=bordurebas[sup];
+		inff=bordurehaut[inf];
 
-	for(x=0;x<src->height;x++){
+	/*for(x=0;x<src->height;x++){
 		for(y=0;y<src->width;y++){
-			*(matx->imageData+x*src->width+y)=x;
-			*(maty->imageData+x*src->width+y)=(bordurebas[x]-bordurehaut[x])*y/(sup-inf);
+			*(matx->imageData+y*src->widthStep+x)=x;
+			*(maty->imageData+y*src->widthStep+x)=(bordurebas[x]-bordurehaut[x])*y/(sup-inf) y;
 		}
 	}
-	cvRemap(src,dst,matx,maty,CV_INTER_LINEAR,cvScalarAll(0));
+	cvRemap(src,dst,matx,maty,CV_INTER_LINEAR,cvScalarAll(255));*/
+	int i;
+	for(x=0;x<src->width;x++){
+		for(y=0;y<src->height;y++){
+			for(i=0;i<3;i++){
+				if (y<pos){
+					*(Mat(dst,y,x)+i)=*(i+Mat(src,(int) pos -(pos-bordurehaut[x])*(pos-y)/(pos-inff),x));
+				}
+				else{
+					*(Mat(dst,y,x)+i)=*(i+Mat(src,(int) pos -(y-pos)*(bordurebas[x]-pos)/(pos-supp) ,x));
+				}
+			}
+		}
+	}
 
 	
 	cvNamedWindow ("essai", CV_WINDOW_NORMAL);
-	cvShowImage ("essai", src);
-	
+	cvShowImage ("essai", dst);
+	cvWaitKey(0);
 	
 	cvReleaseImage(&matx);
 	cvReleaseImage(&maty);
@@ -94,20 +112,17 @@ int main (int argc, char* argv[])
 	cvShowImage ("test", img);
 	cvWaitKey(0);
 	
-	IplImage * dst = NULL;
-	dst=cvCloneImage(img);
-	dst->origin = img->origin;
-	int *tabx=malloc((img->height)*sizeof(int));
-	int *taby = malloc((img->height)*sizeof(int));
+	IplImage *dst;
+	dst=cvCreateImage(cvSize(img->width,img->height),IPL_DEPTH_8U,3);
+	
+	int *tabx=malloc((img->width)*sizeof(int));
+	int *taby = malloc((img->width)*sizeof(int));
 	CvScalar pixel;
 	pixel.val[0]=0;
 	pixel.val[1]=0;
 	pixel.val[2]=0;
 	bordures(img,tabx,taby,pixel,100);
-	/*dewarp(img,dst,tabx,taby);
-	cvNamedWindow("test2",CV_WINDOW_NORMAL);
-	cvShowImage("test2",dst);
-	cvWaitKey(0);*/
+	dewarp(img,dst,tabx,taby,500);
 	
 	/*uchar * p;
 	int i=0;
