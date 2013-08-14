@@ -3,6 +3,7 @@
 #include <opencv/highgui.h>
 #include <opencv/cv.h>
 #define Mat(img,i,j) (img->imageData +(i)*img->widthStep +(j)* img->nChannels)
+#define poly(x,tab) (tab[0] + tab[1]*(x)+tab[2]*(x)*(x) +tab[3]*(x)*(x)*(x))
 
 
 int cmpcolor(uchar* pixel,uchar ref1,uchar ref2,uchar ref3,float tolerance){
@@ -31,8 +32,51 @@ void bordures(IplImage * image, int *bordurehaut,int *bordurebas, CvScalar coule
 		}
 		*(bordurebas+x)=b;
 		*(bordurehaut+x)=h;
+		
 	}
 }
+
+void cubicregression( int *tab, float resul[4],int size){
+		int i;
+		FILE *fp ;
+		fp=fopen("/home/man/opencv/numbook/sortie.csv","w");
+		if (fp==NULL)
+			printf("Erreur à l'écriture du fichier sortie.csv");
+		else{
+			fprintf(fp,"x , y1\n");
+			for(i=0;i<size;i++){
+				fprintf(fp,"%d , %d\n",i,tab[i]);
+			}
+		
+			char resultat[200];
+			FILE *fp2;
+			fp2=popen("~/opencv/numbook/script.sh","r");
+			fgets(resultat,200,fp2);fgets(resultat, 200,fp2);
+				char res[20];
+			int j=0;int k=0;int i=0;
+			while(i<4){
+				if (resultat[j]!=' ') {
+					res[k]=resultat[j];
+					k++;j++;
+				}
+				else if ((resultat[j]=' ' )&& (resultat[j+1]!=' ')&& (k>0)){
+					res[k]='\0';
+					resul[i]=atof(res);
+					k=0;j++;i++;
+				}
+				else {
+					j++;
+					res[k]='\0';
+				}
+				}
+				printf("\n%f+x*%f+x^2*%f+x^3*%f\n",resul[0],resul[1],resul[2],resul[3]); 
+				fclose(fp2);
+				fclose(fp);
+			}
+			
+		}
+
+
 void dewarp(IplImage * src,IplImage * dst,int *bordurehaut, int *bordurebas,int pos){
 	
 	IplImage *matx,*maty;
@@ -53,24 +97,32 @@ void dewarp(IplImage * src,IplImage * dst,int *bordurehaut, int *bordurebas,int 
 		int supp,inff;
 		supp=bordurebas[sup];
 		inff=bordurehaut[inf];
+		float polynomhaut[4],polynombas[4];
+		cubicregression (bordurehaut,polynomhaut,src->width);
+		cubicregression(bordurebas,polynombas,src->width);
 
 
-	/*for(x=0;x<src->height;x++){
-		for(y=0;y<src->width;y++){
-			*(matx->imageData+y*src->widthStep+x)=x;
-			*(maty->imageData+y*src->widthStep+x)=(bordurebas[x]-bordurehaut[x])*y/(sup-inf) y;
+	/*for(x=0;x<src->width;x++){
+		for(y=inff;y<supp;y++){
+			*(Mat(matx,y,x))=x;
+			if (y<pos){
+					*(Mat(matx,y,x))=*(Mat(src,(int) pos +(pos-inff)*(y-pos)/(pos-bordurehaut[x]),x));
+				}
+				else{
+					*(Mat(maty,y,x))=*(Mat(src,(int) pos +(pos-y)/(bordurebas[x]-pos)*(pos-supp) ,x));
+				}
 		}
 	}
 	cvRemap(src,dst,matx,maty,CV_INTER_LINEAR,cvScalarAll(255));*/
 	int i;
 	for(x=0;x<src->width;x++){
-		for(y=0;y<src->height;y++){
+		for(y=inff;y<supp;y++){
 			for(i=0;i<3;i++){
 				if (y<pos){
-					*(Mat(dst,y,x)+i)=*(i+Mat(src,(int) pos -(pos-bordurehaut[x])*(pos-y)/(pos-inff),x));
+					*(Mat(dst,y,x)+i)=*(i+Mat(src,(int) (pos - (pos-poly(x,polynomhaut)/*bordurehaut[x]*/)*(pos-y)/(pos-inff)) ,x));
 				}
 				else{
-					*(Mat(dst,y,x)+i)=*(i+Mat(src,(int) pos +(pos-y)*(bordurebas[x]-pos)/(pos-supp) ,x));
+					*(Mat(dst,y,x)+i)=*(i+Mat(src,(int)( pos +(pos-y)*(poly(x,polynombas)/*bordurebas[x]*/ -pos)/(pos-supp)) ,x));
 				}
 			}
 		}
@@ -84,9 +136,17 @@ void dewarp(IplImage * src,IplImage * dst,int *bordurehaut, int *bordurebas,int 
 	cvReleaseImage(&matx);
 	cvReleaseImage(&maty);
 }
+	void tracerbordure(IplImage *img,int *tab1,int *tab2){
+		int i;
+		for(i=0;i<img->width;i++){
+			*(Mat(img,tab1[i],i)+2)=255;
+			*(Mat(img,tab2[i],i)+2)=255;
+			}
+	}
 	
-	 
-
+	
+					
+		
 
 
 int main (int argc, char* argv[])
@@ -122,6 +182,10 @@ int main (int argc, char* argv[])
 	pixel.val[1]=0;
 	pixel.val[2]=0;
 	bordures(img,tabx,taby,pixel,100);
+	tracerbordure(img,tabx,taby);
+	cvNamedWindow ("test1", CV_WINDOW_NORMAL);
+	cvShowImage ("test1", img);
+	cvWaitKey(0);
 	dewarp(img,dst,tabx,taby,400);
 	
   /* Libération de la mémoire */
