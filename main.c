@@ -47,31 +47,14 @@ void cubicregression( int *tab, float resul[4],int size){
 			for(i=0;i<size;i++){
 				fprintf(fp,"%d , %d\n",i,tab[i]);
 			}
-		
+			fclose(fp);
 			char resultat[200];
 			FILE *fp2;
 			fp2=popen("~/opencv/numbook/script.sh","r");
-			fgets(resultat,200,fp2);fgets(resultat, 200,fp2);
-				char res[20];
-			int j=0;int k=0;int i=0;
-			while(i<4){
-				if (resultat[j]!=' ') {
-					res[k]=resultat[j];
-					k++;j++;
-				}
-				else if ((resultat[j]=' ' )&& (resultat[j+1]!=' ')&& (k>0)){
-					res[k]='\0';
-					resul[i]=atof(res);
-					k=0;j++;i++;
-				}
-				else {
-					j++;
-					res[k]='\0';
-				}
-				}
+			fgets(resultat,200,fp2);
+			fscanf(fp2," %f %f %f %f",&resul[0],&resul[1],&resul[2],&resul[3]);
 				printf("\n%f+x*%f+x^2*%f+x^3*%f\n",resul[0],resul[1],resul[2],resul[3]); 
 				fclose(fp2);
-				fclose(fp);
 			}
 			
 		}
