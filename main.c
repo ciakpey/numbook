@@ -3,7 +3,7 @@
 #include <opencv/highgui.h>
 #include <opencv/cv.h>
 #define Mat(img,i,j) (img->imageData +(i)*img->widthStep +(j)* img->nChannels)
-#define poly(x,tab) (tab[0] + tab[1]*(x)+tab[2]*(x)*(x) +tab[3]*(x)*(x)*(x))
+#define poly(x,tab) (tab[0] + tab[1]*(x)+tab[2]*(x)*(x) +tab[3]*(x)*(x)*(x)+tab[4]*(x)*(x)*(x)*(x))
 
 
 int cmpcolor(uchar* pixel,uchar ref1,uchar ref2,uchar ref3,float tolerance){
@@ -36,7 +36,7 @@ void bordures(IplImage * image, int *bordurehaut,int *bordurebas, CvScalar coule
 	}
 }
 
-void cubicregression( int *tab, float resul[4],int size){
+void cubicregression( int *tab, float resul[5],int size){
 		int i;
 		FILE *fp ;
 		fp=fopen("/home/man/opencv/numbook/sortie.csv","w");
@@ -52,9 +52,9 @@ void cubicregression( int *tab, float resul[4],int size){
 			FILE *fp2;
 			fp2=popen("~/opencv/numbook/script.sh","r");
 			fgets(resultat,200,fp2);
-			fscanf(fp2," %f %f %f %f",&resul[0],&resul[1],&resul[2],&resul[3]);
-				printf("\n%f+x*%f+x^2*%f+x^3*%f\n",resul[0],resul[1],resul[2],resul[3]); 
-				fclose(fp2);
+			fscanf(fp2," %f %f %f %f %f",&resul[0],&resul[1],&resul[2],&resul[3],&resul[4]);
+			printf("\n%f+x*%f+x^2*%f+x^3*%f+x^4*%f\n",resul[0],resul[1],resul[2],resul[3],resul[4]); 
+			fclose(fp2);
 			}
 			
 		}
@@ -62,13 +62,14 @@ void cubicregression( int *tab, float resul[4],int size){
 
 void dewarp(IplImage * src,IplImage * dst,int *bordurehaut, int *bordurebas,int pos){
 	
-	IplImage *matx,*maty;
+	/*IplImage *matx,*maty;
 	matx=cvCreateImage(cvSize(src->height,src->width),IPL_DEPTH_32F,1);
-	maty=cvCreateImage(cvSize(src->height,src->width),IPL_DEPTH_32F,1);
+	maty=cvCreateImage(cvSize(src->height,src->width),IPL_DEPTH_32F,1);*/
+	int x,y,i; /*variables pour les boucles*/
+	int inff,supp; /* variable extremes de la page*/
 	dst->origin = src->origin;
 	int inf=0;
 	int sup=src->width;
-		int x,y;
 	for(x=0;x<src->width;x++){
 			if (bordurehaut[x]<bordurehaut[inf]){
 				inf=x;
@@ -77,10 +78,10 @@ void dewarp(IplImage * src,IplImage * dst,int *bordurehaut, int *bordurebas,int 
 				sup=x;
 			}
 		}
-		int supp,inff;
 		supp=bordurebas[sup];
 		inff=bordurehaut[inf];
-		float polynomhaut[4],polynombas[4];
+		float polynomhaut[5],polynombas[5];
+		
 		cubicregression (bordurehaut,polynomhaut,src->width);
 		cubicregression(bordurebas,polynombas,src->width);
 
@@ -97,9 +98,8 @@ void dewarp(IplImage * src,IplImage * dst,int *bordurehaut, int *bordurebas,int 
 		}
 	}
 	cvRemap(src,dst,matx,maty,CV_INTER_LINEAR,cvScalarAll(255));*/
-	int i;
 	for(x=0;x<src->width;x++){
-		for(y=inff;y<supp;y++){
+		for(y=inff-50;y<supp+50;y++){
 			for(i=0;i<3;i++){
 				if (y<pos){
 					*(Mat(dst,y,x)+i)=*(i+Mat(src,(int) (pos - (pos-poly(x,polynomhaut)/*bordurehaut[x]*/)*(pos-y)/(pos-inff)) ,x));
@@ -116,8 +116,8 @@ void dewarp(IplImage * src,IplImage * dst,int *bordurehaut, int *bordurebas,int 
 	cvShowImage ("essai", dst);
 	cvWaitKey(0);
 	
-	cvReleaseImage(&matx);
-	cvReleaseImage(&maty);
+	/*cvReleaseImage(&matx);
+	cvReleaseImage(&maty);*/
 }
 	void tracerbordure(IplImage *img,int *tab1,int *tab2){
 		int i;
@@ -169,7 +169,7 @@ int main (int argc, char* argv[])
 	cvNamedWindow ("test1", CV_WINDOW_NORMAL);
 	cvShowImage ("test1", img);
 	cvWaitKey(0);
-	dewarp(img,dst,tabx,taby,400);
+	dewarp(img,dst,tabx,taby,img->height/2);
 	
   /* Libération de la mémoire */
   cvReleaseImage (&img);
